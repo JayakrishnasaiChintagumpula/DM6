@@ -8,7 +8,6 @@ import numpy as np
 from numpy.typing import NDArray
 import pickle
 from scipy.spatial.distance import cdist
-import matplotlib.backends.backend_pdf as pdf
 from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_rand_score
 from matplotlib.backends.backend_pdf import PdfPages
