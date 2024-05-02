@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 import pickle
+from scipy.spatial.distance import cdist
 
 ######################################################################
 #####     CHECK THE PARAMETERS     ########
