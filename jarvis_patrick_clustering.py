@@ -155,7 +155,71 @@ def jarvis_patrick_clustering():
     # Minimmum of 10 pairs of parameters ('sigma' and 'xi').
 
     # Create a dictionary for each parameter pair ('sigma' and 'xi').
+    clust_data = np.load("C:/Users/jayak/OneDrive/Desktop/assignments/Data Mining/Assignment 6/question1_cluster_data.npy")
+    clust_labels = np.load("C:/Users/jayak/OneDrive/Desktop/assignments/Data Mining/Assignment 6/question1_cluster_labels.npy")
+
+    # Select a subset of data for hyperparameter tuning
+    random_indices = np.random.choice(len(clust_data), size=5000, replace=False)
+    data_subset = clust_data[random_indices][:1000]
+    labels_subset = clust_labels[random_indices][:1000]
+
+    # Define hyperparameter ranges
+    k_range = [3, 4, 5, 6, 7, 8]
+    s_min_range = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+    # Determine the best hyperparameters
+    num_trials = 10
+    best_k, best_s_min = best_hyperparams(data_subset, labels_subset, k_range, s_min_range, num_trials)
+
+    # Set parameters
+    params_dict = {'k': best_k, 's_min': best_s_min}
     groups = {}
+    plots_values = {}
+
+    # Perform clustering on different data segments
+    for i in range(5):
+        data_slice = clust_data[i * 1000: (i + 1) * 1000]
+        labels_slice = clust_labels[i * 1000: (i + 1) * 1000]
+        
+        computed_labels, sse, ari = jarvis_patrick(data_slice, labels_slice, params_dict)
+        groups[i] = {"smin": best_s_min, "k": best_k, "ARI": ari, "SSE": sse}
+        plots_values[i] = {"computed_labels": computed_labels, "ARI": ari, "SSE": sse}
+
+    # Determine the segment with the highest ARI and the lowest SSE
+    highest_ari_index = max(plots_values, key=lambda x: plots_values[x]['ARI'])
+    lowest_sse_index = min(plots_values, key=lambda x: plots_values[x]['SSE'])
+
+    # Create PDF for plots
+    pdf_pages = PdfPages("plots_for_jarvis_patrick_clustering.pdf")
+
+    # Plotting the results for the highest ARI
+    plt.figure(figsize=(8, 6))
+    plot_ARI = plt.scatter(clust_data[highest_ari_index * 1000: (highest_ari_index + 1) * 1000, 0],
+                        clust_data[highest_ari_index * 1000: (highest_ari_index + 1) * 1000, 1],
+                        c=plots_values[highest_ari_index]["computed_labels"], cmap='viridis')
+    plt.title(f'Clustering for Dataset {highest_ari_index} (Highest ARI) with k={best_k}, s_min={best_s_min}')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.colorbar(label='ID')
+    plt.grid(True)
+    pdf_pages.savefig()
+    plt.close()
+
+    # Plotting the results for the lowest SSE
+    plt.figure(figsize=(8, 6))
+    plot_SSE = plt.scatter(clust_data[lowest_sse_index * 1000: (lowest_sse_index + 1) * 1000, 0],
+                        clust_data[lowest_sse_index * 1000: (lowest_sse_index + 1) * 1000, 1],
+                        c=plots_values[lowest_sse_index]["computed_labels"], cmap='viridis')
+    plt.title(f'Clustering for Dataset {lowest_sse_index} (Lowest SSE) with k={best_k}, s_min={best_s_min}')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.colorbar(label='Cluster ID')
+    plt.grid(True)
+    pdf_pages.savefig()
+    plt.close()
+
+    pdf_pages.close()
+
 
     # data for data group 0: data[0:10000]. For example,
     # groups[0] = {"sigma": 0.1, "xi": 0.1, "ARI": 0.1, "SSE": 0.1}
@@ -166,7 +230,7 @@ def jarvis_patrick_clustering():
 
     # groups is the dictionary above
     answers["cluster parameters"] = groups
-    answers["1st group, SSE"] = {}
+    answers["1st group, SSE"] = groups[0]["SSE"]
 
     # Create two scatter plots using `matplotlib.pyplot`` where the two
     # axes are the parameters used, with # \sigma on the horizontal axis
@@ -178,8 +242,8 @@ def jarvis_patrick_clustering():
     # All plots must have x and y labels, a title, and the grid overlay.
 
     # Plot is the return value of a call to plt.scatter()
-    plot_ARI = plt.scatter([1,2,3], [4,5,6])
-    plot_SSE = plt.scatter([1,2,3], [4,5,6])
+    #plot_ARI = plt.scatter([1,2,3], [4,5,6])
+    #plot_SSE = plt.scatter([1,2,3], [4,5,6])
     answers["cluster scatterplot with largest ARI"] = plot_ARI
     answers["cluster scatterplot with smallest SSE"] = plot_SSE
 
