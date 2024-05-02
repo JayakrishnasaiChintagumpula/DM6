@@ -27,17 +27,34 @@ def compute_SSE(data, labels):
     return sse
 
 def confusion_matrix(true_labels, predicted_labels):
-    # Extract the unique categories
-    categories = np.unique(np.concatenate((true_labels, predicted_labels)))
+    # Extract the unique classes and sort them to ensure consistent indexing
+    unique_classes = np.unique(np.concatenate((true_labels, predicted_labels)))
+    unique_classes.sort()  # Sorting to emphasize the ordering, though np.unique already returns sorted array
+    
     # Initialize the confusion matrix with zeros
-    matrix = np.zeros((len(categories), len(categories)), dtype=int)
+    matrix = np.zeros((len(unique_classes), len(unique_classes)), dtype=int)
 
-    # Map each category to an index
-    category_index = {category: index for index, category in enumerate(categories)}
+    # Map each class to an index using a more explicit loop
+    index_map = {}
+    for idx, cls in enumerate(unique_classes):
+        index_map[cls] = idx
 
-    # Populate the confusion matrix
-    for actual, predicted in zip(true_labels, predicted_labels):
-        matrix[category_index[actual]][category_index[predicted]] += 1
+    # Validate that all labels are valid before proceeding
+    if not all(label in index_map for label in np.concatenate((true_labels, predicted_labels))):
+        raise ValueError("All labels must be in index_map.")
+
+    # Manually count occurrences before filling the matrix
+    label_counts = {}
+    for true, pred in zip(true_labels, predicted_labels):
+        key = (index_map[true], index_map[pred])
+        if key in label_counts:
+            label_counts[key] += 1
+        else:
+            label_counts[key] = 1
+
+    # Populate the confusion matrix using the counted occurrences
+    for (true_idx, pred_idx), count in label_counts.items():
+        matrix[true_idx][pred_idx] = count
 
     return matrix
 
