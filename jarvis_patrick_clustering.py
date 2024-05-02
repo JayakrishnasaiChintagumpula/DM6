@@ -103,11 +103,37 @@ def jarvis_patrick(
     - In this project, only consider unidirectional nearest neighboars for simplicity.
     - The metric  used to compute the the k-nearest neighberhood of all points is the Euclidean metric
     """
+    k = params_dict['k']  
+    s_min = params_dict['s_min']
+    num_samples = len(data)
+    computed_labels = np.zeros(num_samples, dtype=np.int32)
+    
+    # Normalizing data to have mean 0 and standard deviation 1 for each feature
+    normalized_data = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+    
+    # Calculate the distance matrix for the normalized data
+    distance_matrix = cdist(normalized_data, normalized_data, 'euclidean')
 
-    computed_labels: NDArray[np.int32] | None = None
-    SSE: float | None = None
-    ARI: float | None = None
+    for i in range(num_samples):
+        # Get distances to all other points and sort them to find the nearest neighbors
+        distances = distance_matrix[i]
+        nearest_neighbor_indices = np.argsort(distances)[1:k+1]  # Exclude self by starting from index 1
 
+        # Count how many times each label appears among the k-nearest neighbors
+        neighbor_label_counts = np.bincount(labels[nearest_neighbor_indices], minlength=np.max(labels) + 1)
+
+        # Find the label with the maximum count (the dominant label)
+        dominant_label = np.argmax(neighbor_label_counts)
+        dominant_proportion = neighbor_label_counts[dominant_label] / k
+
+        # Assign the dominant label if it meets the similarity threshold
+        if dominant_proportion >= s_min:
+            computed_labels[i] = dominant_label
+
+    # Calculate the Adjusted Rand Index and SSE for the assigned labels
+    ARI = adjusted_random_index(labels, computed_labels)
+    SSE = calculate_SSE(data, computed_labels)
+    
     return computed_labels, SSE, ARI
 
 
