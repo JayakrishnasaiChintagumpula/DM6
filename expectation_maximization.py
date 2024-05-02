@@ -26,6 +26,21 @@ def compute_SSE(data, labels):
         sse += np.sum((cluster_points - cluster_center) ** 2)
     return sse
 
+def confusion_matrix(true_labels, predicted_labels):
+    # Extract the unique categories
+    categories = np.unique(np.concatenate((true_labels, predicted_labels)))
+    # Initialize the confusion matrix with zeros
+    matrix = np.zeros((len(categories), len(categories)), dtype=int)
+
+    # Map each category to an index
+    category_index = {category: index for index, category in enumerate(categories)}
+
+    # Populate the confusion matrix
+    for actual, predicted in zip(true_labels, predicted_labels):
+        matrix[category_index[actual]][category_index[predicted]] += 1
+
+    return matrix
+
 
 def compute_ARI(confusion_matrix: NDArray[np.int32]):
     """
