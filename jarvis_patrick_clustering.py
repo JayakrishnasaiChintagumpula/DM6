@@ -8,6 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 import pickle
 from scipy.spatial.distance import cdist
+from sklearn.metrics import adjusted_rand_score
 
 ######################################################################
 #####     CHECK THE PARAMETERS     ########
