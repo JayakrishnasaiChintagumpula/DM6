@@ -155,8 +155,8 @@ def jarvis_patrick_clustering():
     # Minimmum of 10 pairs of parameters ('sigma' and 'xi').
 
     # Create a dictionary for each parameter pair ('sigma' and 'xi').
-    clust_data = np.load("C:/Users/jayak/OneDrive/Desktop/assignments/Data Mining/Assignment 6/question1_cluster_data.npy")
-    clust_labels = np.load("C:/Users/jayak/OneDrive/Desktop/assignments/Data Mining/Assignment 6/question1_cluster_labels.npy")
+    clust_data = np.load("question1_cluster_data.npy")
+    clust_labels = np.load("question1_cluster_labels.npy")
 
     # Select a subset of data for hyperparameter tuning
     random_indices = np.random.choice(len(clust_data), size=5000, replace=False)
