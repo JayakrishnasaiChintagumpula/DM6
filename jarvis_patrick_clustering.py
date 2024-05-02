@@ -250,18 +250,32 @@ def jarvis_patrick_clustering():
     # Pick the parameters that give the largest value of ARI, and apply these
     # parameters to datasets 1, 2, 3, and 4. Compute the ARI for each dataset.
     # Calculate mean and standard deviation of ARI for all five datasets.
+    value_ARI = []
+    for segment in groups:
+        value_ARI.append(groups[segment]["ARI"])
+
+    # Compute the mean and standard deviation of the ARI values
+    mean_of_ARI = sum(value_ARI) / len(value_ARI)  # Explicitly calculating the mean
+    std_of_ARI = (sum((x - mean_of_ARI) ** 2 for x in value_ARI) / len(value_ARI)) ** 0.5  # Calculating the standard deviation manually
 
     # A single float
-    answers["mean_ARIs"] = 0.
+    answers["mean_ARIs"] = mean_of_ARI
 
     # A single float
-    answers["std_ARIs"] = 0.
+    answers["std_ARIs"] = std_of_ARI
+    sse_list = []
+    for key in groups:
+        sse_list.append(groups[key]["SSE"])
+
+    # Compute the mean and standard deviation of the SSE values manually
+    average_sse = sum(sse_list) / len(sse_list)  # Manually computing the mean SSE
+    std_deviation_sse = (sum((x - average_sse) ** 2 for x in sse_list) / len(sse_list)) ** 0.5  # Manually computing the standard deviation
 
     # A single float
-    answers["mean_SSEs"] = 0.
+    answers["mean_SSEs"] = average_sse
 
     # A single float
-    answers["std_SSEs"] = 0.
+    answers["std_SSEs"] = std_deviation_sse
 
     return answers
 
