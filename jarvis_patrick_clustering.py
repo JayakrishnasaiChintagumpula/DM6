@@ -14,7 +14,69 @@ from matplotlib.backends.backend_pdf import PdfPages
 #####     CHECK THE PARAMETERS     ########
 ######################################################################
 
+def calculate_SSE(data, labels):
+    total_sse = 0.0
+    unique_clusters = np.unique(labels)
+    for cluster_id in unique_clusters:
+        cluster_points = data[labels == cluster_id]
+        if cluster_points.size > 0:
+            cluster_center = np.sum(cluster_points, axis=0) / cluster_points.shape[0]
+            total_sse += np.sum((cluster_points - cluster_center) ** 2)
+    return total_sse
 
+def adjusted_random_index(true_labels, pred_labels):
+    def comb(n):
+        if n < 2:
+            return 0
+        return n * (n - 1) / 2
+
+    unique_true, inverse_true = np.unique(true_labels, return_inverse=True)
+    unique_pred, inverse_pred = np.unique(pred_labels, return_inverse=True)
+    n = len(true_labels)
+    contingency_matrix = np.zeros((len(unique_true), len(unique_pred)), dtype=int)
+
+    for i in range(n):
+        contingency_matrix[inverse_true[i], inverse_pred[i]] += 1
+
+    sum_total = np.sum(contingency_matrix)
+    sum_comb_rows = np.sum([comb(n) for n in np.sum(contingency_matrix, axis=1)])
+    sum_comb_cols = np.sum([comb(n) for n in np.sum(contingency_matrix, axis=0)])
+    sum_comb_total = np.sum([comb(n) for n in contingency_matrix.flatten()])
+
+    expected_index = sum_comb_rows * sum_comb_cols / comb(sum_total)
+    max_index = (sum_comb_rows + sum_comb_cols) / 2
+    index = (sum_comb_total - expected_index) / (max_index - expected_index) if max_index != expected_index else 0
+
+    return index
+
+def jarvis_patrick(data, labels, params):
+    # Simulated clustering process - this should be replaced with your actual clustering logic
+    computed_labels = np.random.randint(0, params['k'], size=len(data))
+    cluster_centers = data[np.random.choice(range(len(data)), params['k'], replace=False), :]
+    ARI = adjusted_random_index(labels, computed_labels)
+    return computed_labels, ARI, cluster_centers
+
+def best_hyperparams(data, labels, k_range, s_min_range, num_trials):
+    highest_ARI = -1
+    optimal_k = None
+    optimal_s_min = None
+
+    for k in k_range:
+        for s_min in s_min_range:
+            cumulative_ARI = 0
+            for _ in range(num_trials):
+                params = {'k': k, 's_min': s_min}
+                _, ARI_score, _ = jarvis_patrick(data, labels, params)
+                cumulative_ARI += ARI_score
+
+            average_ARI = cumulative_ARI / num_trials
+            if average_ARI > highest_ARI:
+                highest_ARI = average_ARI
+                optimal_k = k
+                optimal_s_min = s_min
+
+    return optimal_k, optimal_s_min
+    
 def jarvis_patrick(
     data: NDArray[np.floating], labels: NDArray[np.int32], params_dict: dict
 ) -> tuple[NDArray[np.int32] | None, float | None, float | None]:
